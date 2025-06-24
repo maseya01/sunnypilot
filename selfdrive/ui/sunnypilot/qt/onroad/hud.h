@@ -18,4 +18,7 @@ public:
   HudRendererSP();
   void updateState(const UIState &s) override;
   void draw(QPainter &p, const QRect &surface_rect) override;
+
+  float lead_distance_feet = -1.0f; // -1 means no lead detected
+  void drawLeadDistance(QPainter &p, const QRect &surface_rect);
 };
