@@ -75,13 +75,15 @@ class LatControlTorqueExtBase:
     # value, which is offset by the steerActuatorDelay.
     # TODO-SP: Reevaluate lookahead v values that determines how low a desired lateral jerk signal needs to
     #          persist in order to be used.
-    self.friction_look_ahead_v = [1.4, 2.0]  # how many seconds in the future to look ahead in [0, ~2.1] in 0.1 increments
+    # Adjusted for Honda Ridgeline - shorter look-ahead for more immediate response
+    self.friction_look_ahead_v = [1.2, 1.8]  # Default [1.4, 2.0], reduced for quicker reactions
     self.friction_look_ahead_bp = [9.0, 30.0]  # corresponding speeds in m/s in [0, ~40] in 1.0 increments
 
     # Scaling the lateral acceleration "friction response" could be helpful for some.
     # Increase for a stronger response, decrease for a weaker response.
-    self.lat_jerk_friction_factor = 0.4
-    self.lat_accel_friction_factor = 0.7  # in [0, 3], in 0.05 increments. 3 is arbitrary safety limit
+    # Tuned for Honda Ridgeline - increased values for more responsive steering
+    self.lat_jerk_friction_factor = 0.6  # Default 0.4, increased for faster response to changes
+    self.lat_accel_friction_factor = 1.0  # Default 0.7, increased for stronger steering response
 
     # precompute time differences between ModelConstants.T_IDXS
     self.t_diffs = np.diff(ModelConstants.T_IDXS)
