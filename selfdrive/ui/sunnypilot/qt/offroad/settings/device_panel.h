@@ -33,7 +33,6 @@ private:
   MaxTimeOffroad *maxTimeOffroad;
   ButtonParamControlSP *toggleDeviceBootMode;
   Brightness *brightness;
-  OptionControlSP *interactivityTimeout;
 
   const QString alwaysOffroadStyle = R"(
     PushButtonSP {
