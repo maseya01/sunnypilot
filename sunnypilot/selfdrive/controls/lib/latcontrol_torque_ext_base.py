@@ -81,9 +81,9 @@ class LatControlTorqueExtBase:
 
     # Scaling the lateral acceleration "friction response" could be helpful for some.
     # Increase for a stronger response, decrease for a weaker response.
-    # Tuned for Honda Ridgeline - increased values for more responsive steering
-    self.lat_jerk_friction_factor = 0.6  # Default 0.4, increased for faster response to changes
-    self.lat_accel_friction_factor = 1.0  # Default 0.7, increased for stronger steering response
+    # Tuned for Honda Ridgeline - balanced values for responsive but stable steering
+    self.lat_jerk_friction_factor = 0.5  # Default 0.4, moderate increase to reduce oscillation
+    self.lat_accel_friction_factor = 0.85  # Default 0.7, balanced increase for stability
 
     # precompute time differences between ModelConstants.T_IDXS
     self.t_diffs = np.diff(ModelConstants.T_IDXS)
