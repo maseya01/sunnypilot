@@ -8,10 +8,18 @@
 
 void pandad_main_thread(std::vector<std::string> serials);
 
+// deprecated devices
+static const std::vector<cereal::PandaState::PandaType> SUPPORTED_PANDA_TYPES = {
+  cereal::PandaState::PandaType::RED_PANDA,
+  cereal::PandaState::PandaType::TRES,
+  cereal::PandaState::PandaType::CUATRO,
+};
+
+
 class PandaSafety {
 public:
   PandaSafety(const std::vector<Panda *> &pandas) : pandas_(pandas) {}
-  void configureSafetyMode();
+  void configureSafetyMode(bool is_onroad);
   bool getOffroadMode();
 
 private:

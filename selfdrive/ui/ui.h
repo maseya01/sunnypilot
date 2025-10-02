@@ -62,9 +62,14 @@ typedef struct UIScene {
   cereal::LongitudinalPersonality personality;
 
   float light_sensor = -1;
-  bool started, ignition, is_metric;
+  bool started, ignition, is_metric, recording_audio;
   uint64_t started_frame;
 } UIScene;
+
+#ifdef SUNNYPILOT
+#include "sunnypilot/ui_scene.h"
+#define UIScene UISceneSP
+#endif
 
 class UIState : public QObject {
   Q_OBJECT

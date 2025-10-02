@@ -9,7 +9,6 @@ import hashlib
 import os
 import pickle
 import numpy as np
-import json
 
 from openpilot.common.params import Params
 from cereal import custom
@@ -19,8 +18,9 @@ from openpilot.system.hardware import PC
 from openpilot.system.hardware.hw import Paths
 from pathlib import Path
 
-CURRENT_SELECTOR_VERSION = 6
-REQUIRED_MIN_SELECTOR_VERSION = 5
+# see the README.md for more details on the model selector versioning
+CURRENT_SELECTOR_VERSION = 10
+REQUIRED_MIN_SELECTOR_VERSION = 9
 
 USE_ONNX = os.getenv('USE_ONNX', PC)
 
@@ -63,13 +63,14 @@ def is_bundle_version_compatible(bundle: dict) -> bool:
   """
   return bool(REQUIRED_MIN_SELECTOR_VERSION <= bundle.get("minimumSelectorVersion", 0) <= CURRENT_SELECTOR_VERSION)
 
+
 def get_active_bundle(params: Params = None) -> custom.ModelManagerSP.ModelBundle:
   """Gets the active model bundle from cache"""
   if params is None:
     params = Params()
 
   try:
-    if (active_bundle := json.loads(params.get("ModelManager_ActiveBundle") or "{}")) and is_bundle_version_compatible(active_bundle):
+    if (active_bundle := params.get("ModelManager_ActiveBundle") or {}) and is_bundle_version_compatible(active_bundle):
       return custom.ModelManagerSP.ModelBundle(**active_bundle)
   except Exception:
     pass
@@ -110,7 +111,7 @@ def get_active_model_runner(params: Params = None, force_check=False) -> custom.
     runner_type = active_bundle.runner.raw
 
   if cached_runner_type != runner_type:
-    params.put("ModelRunnerTypeCache", str(int(runner_type)))
+    params.put("ModelRunnerTypeCache", int(runner_type))
 
   return runner_type
 
@@ -184,3 +185,27 @@ def load_meta_constants(model_metadata):
       meta = MetaTombRaider
 
   return meta
+
+
+# The following method(s) are modeld helper methods
+def plan_x_idxs_helper(constants, plan, model_output) -> list[float]:
+  # times at X_IDXS according to plan.
+  LINE_T_IDXS = [np.nan] * constants.IDX_N
+  LINE_T_IDXS[0] = 0.0
+  plan_x = model_output['plan'][0, :, plan.POSITION][:, 0].tolist()
+  for xidx in range(1, constants.IDX_N):
+    tidx = 0
+    # increment tidx until we find an element that's further away than the current xidx
+    while tidx < constants.IDX_N - 1 and plan_x[tidx + 1] < constants.X_IDXS[xidx]:
+      tidx += 1
+    if tidx == constants.IDX_N - 1:
+      # if the plan doesn't extend far enough, set plan_t to the max value (10s), then break
+      LINE_T_IDXS[xidx] = constants.T_IDXS[constants.IDX_N - 1]
+      break
+    # interpolate to find `t` for the current xidx
+    current_x_val = plan_x[tidx]
+    next_x_val = plan_x[tidx + 1]
+    p = (constants.X_IDXS[xidx] - current_x_val) / (next_x_val - current_x_val) if abs(
+      next_x_val - current_x_val) > 1e-9 else float('nan')
+    LINE_T_IDXS[xidx] = p * constants.T_IDXS[tidx + 1] + (1 - p) * constants.T_IDXS[tidx]
+  return LINE_T_IDXS
