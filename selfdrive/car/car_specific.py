@@ -67,8 +67,10 @@ class CarSpecificEvents:
     elif self.CP.brand == 'honda':
       events = self.create_common_events(CS, CS_prev, extra_gears=extra_gears, pcm_enable=False)
 
-      if self.CP.pcmCruise and CS.vEgo < self.CP.minEnableSpeed:
-        events.add(EventName.belowEngageSpeed)
+      # Removed the belowEngageSpeed check to allow initial engagement at 12 mph
+      # instead of requiring 26 mph for first-time engagement
+      # if self.CP.pcmCruise and CS.vEgo < self.CP.minEnableSpeed:
+      #   events.add(EventName.belowEngageSpeed)
 
       if self.CP.pcmCruise:
         # we engage when pcm is active (rising edge)
