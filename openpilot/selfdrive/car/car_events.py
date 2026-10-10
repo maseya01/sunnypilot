@@ -38,8 +38,10 @@ class CarEvents:
         events.add(EventName.belowSteerSpeed)
 
     elif self.CP.brand == 'honda':
-      if self.CP.pcmCruise and CS.vEgo < self.CP.minEnableSpeed:
-        events.add(EventName.belowEngageSpeed)
+      # [tuning] Removed the belowEngageSpeed check to allow initial engagement at 12 mph
+      # instead of requiring 26 mph for first-time engagement
+      # if self.CP.pcmCruise and CS.vEgo < self.CP.minEnableSpeed:
+      #   events.add(EventName.belowEngageSpeed)
 
       if self.CP.pcmCruise:
         # we engage when pcm is active (rising edge)
