@@ -100,8 +100,12 @@ class DRIVER_MONITOR_SETTINGS:
     #   filter     0.25s -> 1.50s  everything shorter than ~1.5s is ignored
     #   escalation 5/8/13s -> 12/18/25s   ~1.9x more time before each alert level
     #   wheeltouch 5/15/25s -> 20/30/40s  restores and exceeds pre-f9c555a3f (15/24/30)
-    #   lockout    practically disabled: 8 reds instead of 2 before a lockout
-    #              (set _MAX_ALERT_3/_MAX_NO_RESPONSE to 1000 for literally never)
+    #   lockout    removed: 1000 reds required, so it never triggers. _LOCKOUT_TIMES is
+    #              zeroed as a second guard: selfdrived persists "DriverTooDistracted"
+    #              across restarts, and a stored lockout would otherwise be restored with
+    #              a duration. With 0 the state clears on the first DM tick (50 ms).
+    #              Note policy.py:428 uses max(1, ...) for the "N minutes Left" text, so
+    #              any lingering multi-tick lockout would always read "1 minute".
     # NOT relaxed: blink/eye closure (drowsiness), alert sounds, alert volumes.
     # Falling asleep still alerts; it just no longer locks you out.
     # ---------------------------------------------------------------------------------
@@ -115,8 +119,9 @@ class DRIVER_MONITOR_SETTINGS:
     self._VISION_POLICY_ALERT_1_TIMEOUT = 12.
     self._VISION_POLICY_ALERT_2_TIMEOUT = 18.
     self._VISION_POLICY_ALERT_3_TIMEOUT = 25.
-    self._MAX_ALERT_3 = 8
-    self._MAX_NO_RESPONSE = 8
+    self._MAX_ALERT_3 = 1000
+    self._MAX_NO_RESPONSE = 1000
+    self._LOCKOUT_TIMES = [0, 0, 0, 0]
     # Restores the pre-f9c555a3f upstream values (15/24/30) and stretches them further.
     # That commit dropped them to 5/15/25, i.e. a "pay attention" nag 5s after the wheel
     # stops registering torque.
