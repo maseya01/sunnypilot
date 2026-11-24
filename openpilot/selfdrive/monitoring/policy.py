@@ -87,6 +87,43 @@ class DRIVER_MONITOR_SETTINGS:
     self._WHEELPOS_DATA_VAR = 3*5.5e-5
     self._WHEELPOS_MAX_COUNT = -1
 
+    # ---------------------------------------------------------------------------------
+    # [tuning] ridgeline-dev local override: relaxed driver monitoring (see FORK-NOTES.md).
+    # Upstream explicitly warns below that nerfing these can get the device banned from
+    # comma/sunnylink servers. This block is additive so `git rebase` conflicts stay
+    # local; deleting it restores stock behaviour exactly.
+    #
+    # What is relaxed and why:
+    #   phone      0.50 -> 0.99   only an unmistakable phone-in-hand reading counts
+    #   pose       0.3133/0.4020 -> 0.50/0.65   ~29 deg pitch / ~37 deg yaw to trip it
+    #   natural    0.449 -> 0.60   pre-calibration baseline matches the relaxed pose limit
+    #   filter     0.25s -> 1.50s  everything shorter than ~1.5s is ignored
+    #   escalation 5/8/13s -> 12/18/25s   ~1.9x more time before each alert level
+    #   wheeltouch 5/15/25s -> 20/30/40s  restores and exceeds pre-f9c555a3f (15/24/30)
+    #   lockout    practically disabled: 8 reds instead of 2 before a lockout
+    #              (set _MAX_ALERT_3/_MAX_NO_RESPONSE to 1000 for literally never)
+    # NOT relaxed: blink/eye closure (drowsiness), alert sounds, alert volumes.
+    # Falling asleep still alerts; it just no longer locks you out.
+    # ---------------------------------------------------------------------------------
+    self._PHONE_THRESH = 0.99
+    self._POSE_PITCH_THRESHOLD = 0.50
+    self._POSE_PITCH_THRESHOLD_STRICT = self._POSE_PITCH_THRESHOLD
+    self._POSE_YAW_THRESHOLD = 0.65
+    self._POSE_YAW_THRESHOLD_STRICT = self._POSE_YAW_THRESHOLD
+    self._PITCH_NATURAL_THRESHOLD = 0.60
+    self._DISTRACTED_FILTER_TS = 1.50
+    self._VISION_POLICY_ALERT_1_TIMEOUT = 12.
+    self._VISION_POLICY_ALERT_2_TIMEOUT = 18.
+    self._VISION_POLICY_ALERT_3_TIMEOUT = 25.
+    self._MAX_ALERT_3 = 8
+    self._MAX_NO_RESPONSE = 8
+    # Restores the pre-f9c555a3f upstream values (15/24/30) and stretches them further.
+    # That commit dropped them to 5/15/25, i.e. a "pay attention" nag 5s after the wheel
+    # stops registering torque.
+    self._WHEELTOUCH_POLICY_ALERT_1_TIMEOUT = 20.
+    self._WHEELTOUCH_POLICY_ALERT_2_TIMEOUT = 30.
+    self._WHEELTOUCH_POLICY_ALERT_3_TIMEOUT = 40.
+
 class DriverPose:
   def __init__(self, settings):
     pitch_filter_raw_priors = (settings._PITCH_NATURAL_OFFSET, settings._PITCH_NATURAL_VAR, 2)
